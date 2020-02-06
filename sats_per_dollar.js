@@ -21,7 +21,7 @@ var in_reply_to;
   
   var result = await getPrice();
   
-  var price = result[0];
+  var price = result[6];
   console.log(`price: ${price}`);
   
   var sats = Math.floor(1 / price * 1e8);
