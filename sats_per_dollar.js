@@ -24,7 +24,7 @@ var in_reply_to;
   var price = result[6];
   console.log(`price: ${price}`);
   
-  var sats = Math.floor(1 / price * 1e8);
+  var sats = Math.floor(1e8 / price);
   console.log(`sats per dollar: ${sats}`)
   
   var r = Math.floor(Math.random() * 256);
