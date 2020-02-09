@@ -15,16 +15,17 @@ var in_reply_to;
 
 (function () {
   console.log('init')
-  cron.schedule('0 */4 * * *', () => onSchedule());
+  if (process.argv.length > 2) {
+    in_reply_to = process.argv[2];
+    onSchedule();
+  } else {
+    cron.schedule('0 */4 * * *', () => onSchedule());
+  }
 })();
 
 async function onSchedule() {
   console.log('start');
  
-  if (process.argv.length > 2) {
-    in_reply_to = process.argv[2];
-  }
-  
   var result = await getPrice();
   
   var price = result[6];
@@ -97,7 +98,8 @@ function dot(pixels, x, y, color) {
 
 function getHeight(sats) {
   var rows = Math.floor(sats / (COLUMNS * GRID * GRID)) + 1;
-  return (rows * 31) + 10;
+  var height = (rows * 31) + 10;
+  return Math.max(height, 285);
 }
 
 async function postStatus(sats) {
