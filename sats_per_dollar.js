@@ -128,7 +128,7 @@ async function postStatus(sats) {
     status.in_reply_to_status_id = in_reply_to;
   }
   
-  var tweet = postStatusesUpdate(twitter, status)
+  var tweet = await postStatusesUpdate(twitter, status)
  
   console.log(`tweet id ${tweet.id}`);
 
