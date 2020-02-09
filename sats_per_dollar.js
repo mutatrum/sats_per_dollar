@@ -1,3 +1,5 @@
+require('log-timestamp');
+const cron = require('node-cron');
 const { createCanvas } = require('canvas');
 const fs = require('fs');
 const https = require("https");
@@ -11,9 +13,13 @@ const COLUMNS = 16;
 
 var in_reply_to;
 
-(async function () {
-  
-  console.log(`started ${new Date().toISOString()}`);
+(function () {
+  console.log('init')
+  cron.schedule('0 */4 * * *', () => onSchedule());
+})();
+
+async function onSchedule() {
+  console.log('start');
  
   if (process.argv.length > 2) {
     in_reply_to = process.argv[2];
@@ -78,7 +84,7 @@ var in_reply_to;
   const stream = canvas.createPNGStream();
   stream.pipe(out);
   out.on('finish', () =>  postStatus(sats));
-})();
+}
 
 function dot(pixels, x, y, color) {
   var p = (y * WIDTH) + x;
@@ -127,7 +133,7 @@ async function postStatus(sats) {
   console.log(`tweet id ${tweet.id}`);
 
   fs.unlinkSync('image.png');
-  console.log(`finished ${new Date().toISOString()}`);
+  console.log('done');
 }
 
 function getStatusesShow(twitter, id) {
