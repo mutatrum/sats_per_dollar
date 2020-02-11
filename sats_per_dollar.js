@@ -28,6 +28,12 @@ async function onSchedule() {
  
   var result = await getPrice();
   
+  if (result.code) {
+    console.log(`code ${result.code} ${result.error}: ${result.error_description}`);
+    console.log('done');
+    return;
+  }
+  
   var price = result[6];
   console.log(`price: ${price}`);
   
