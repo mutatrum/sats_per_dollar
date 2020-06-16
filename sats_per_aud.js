@@ -19,7 +19,7 @@ var in_reply_to;
     in_reply_to = process.argv[2];
     onSchedule();
   } else {
-    cron.schedule('0 2-23/4 * * *', () => onSchedule());
+    cron.schedule('0 2,6,10,14,18,22 * * *', () => onSchedule());
   }
 })();
 
