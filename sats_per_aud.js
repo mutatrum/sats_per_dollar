@@ -6,7 +6,7 @@ const https = require("https");
 var Twitter = require('twitter');
 var config = require('./config.js');
 
-const URL = "https://api-pub.bitfinex.com/v2/ticker/tBTCUSD";
+const URL = "https://api.bitaroo.com.au/trade/market-data/btcaud";
 const WIDTH = 506;
 const GRID = 10;
 const COLUMNS = 16;
@@ -19,7 +19,7 @@ var in_reply_to;
     in_reply_to = process.argv[2];
     onSchedule();
   } else {
-    cron.schedule('0 */4 * * *', () => onSchedule());
+    cron.schedule('0 2-23/4 * * *', () => onSchedule());
   }
 })();
 
@@ -34,11 +34,11 @@ async function onSchedule() {
     return;
   }
   
-  var price = result[6];
+  var price = result.dailyStats.lastPrice;
   console.log(`price: ${price}`);
   
   var sats = Math.floor(1e8 / price);
-  console.log(`sats per dollar: ${sats}`)
+  console.log(`sats per australian dollar: ${sats}`)
   
   var r = Math.floor(Math.random() * 256);
   var g = Math.floor(Math.random() * 256);
