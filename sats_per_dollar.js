@@ -1,7 +1,6 @@
 require('log-timestamp');
 const cron = require('node-cron');
 const { createCanvas } = require('canvas');
-const fs = require('fs');
 const https = require("https");
 var Twitter = require('twitter');
 var config = require('./config.js');
@@ -87,10 +86,7 @@ async function onSchedule() {
   imageData.data.set(new Uint8ClampedArray(buffer));
   ctx.putImageData(imageData, 0, 0);
 
-  const out = fs.createWriteStream('image.png');
-  const stream = canvas.createPNGStream();
-  stream.pipe(out);
-  out.on('finish', () =>  postStatus(sats));
+  out.on('finish', () =>  postStatus(sats, canvas.toBuffer()));
 }
 
 function dot(pixels, x, y, color) {
@@ -108,7 +104,7 @@ function getHeight(sats) {
   return Math.max(height, 285);
 }
 
-async function postStatus(sats) {
+async function postStatus(sats, imageData) {
   var twitter = new Twitter(config);
   
   if (in_reply_to) {
@@ -124,8 +120,6 @@ async function postStatus(sats) {
     }
     console.log(`in reply to @${screen_name}`);
   }
-  
-  const imageData = fs.readFileSync("image.png");
   
   var media = await postMediaUpload(twitter, imageData);
   
@@ -143,7 +137,6 @@ async function postStatus(sats) {
  
   console.log(`tweet id ${tweet.id}`);
 
-  fs.unlinkSync('image.png');
   console.log('done');
 }
 
