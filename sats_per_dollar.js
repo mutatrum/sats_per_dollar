@@ -86,7 +86,7 @@ async function onSchedule() {
   imageData.data.set(new Uint8ClampedArray(buffer));
   ctx.putImageData(imageData, 0, 0);
 
-  out.on('finish', () =>  postStatus(sats, canvas.toBuffer()));
+  postStatus(sats, canvas.toBuffer());
 }
 
 function dot(pixels, x, y, color) {
