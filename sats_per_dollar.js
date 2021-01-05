@@ -20,8 +20,8 @@ const COLUMNS = 16;
     
     var stream = twitter.stream('statuses/filter', {track: `@${config.screen_name}`});
     stream.on('data', onTweet);
-    stream.on('error', error => console.log(error));
-    stream.on('end', response => console.log(response));
+    stream.on('error', error => console.log('Error: ' + error));
+    stream.on('end', response => console.log('Response: ' + response));
   }
 })();
 
