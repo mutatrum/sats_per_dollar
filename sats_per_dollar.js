@@ -1,28 +1,81 @@
 require('log-timestamp');
+const config = require('./config.js');
 const cron = require('node-cron');
 const { createCanvas } = require('canvas');
 const https = require("https");
-var Twitter = require('twitter');
-var config = require('./config.js');
+const Twitter = require('twitter');
+const twitter = new Twitter(config);
 
 const URL = "https://api-pub.bitfinex.com/v2/ticker/tBTCUSD";
 const WIDTH = 506;
 const GRID = 10;
 const COLUMNS = 16;
 
-var in_reply_to;
-
 (function () {
   console.log('init')
   if (process.argv.length > 2) {
-    in_reply_to = process.argv[2];
-    onSchedule();
+    onSchedule(process.argv[2]);
   } else {
     cron.schedule('0 */4 * * *', () => onSchedule());
+    
+    var stream = twitter.stream('statuses/filter', {track: `@${config.screen_name}`});
+    stream.on('data', onTweet);
+    stream.on('error', error => console.log(error));
+    stream.on('end', response => console.log(response));
   }
 })();
 
-async function onSchedule() {
+async function onTweet(tweet) {
+  console.log(JSON.stringify(tweet));
+  if (shouldReply(tweet)) {
+    await onSchedule(tweet.id_str);
+  }
+}
+
+function shouldReply(tweet) {
+  if (tweet.user.screen_name == config.screen_name) {
+    return false;
+  }
+  if (tweet.retweeted_status) {
+    console.log(`retweet by ${tweet.user.screen_name}`);
+    return false;
+  }
+  if (tweet.in_reply_to_status_id_str) {
+    console.log(`reply by ${tweet.user.screen_name}: ${tweet.text}`);
+    return hasUserMention(tweet);
+  }
+  if (tweet.quoted_status_id_str) {
+    console.log(`quote by ${tweet.user.screen_name}: ${tweet.text}`);
+    return hasUserMention(tweet);
+  }
+  console.log(`mention by ${tweet.user.screen_name}: ${tweet.text}`);
+  return true;
+}
+
+function hasUserMention(tweet) {
+  var display_text_range = 0;
+  if (tweet.extended_tweet) {
+    if (tweet.extended_tweet.display_text_range) {
+      display_text_range = tweet.extended_tweet.display_text_range[0];
+    }
+    for (var user_mention of tweet.extended_tweet.entities.user_mentions) {
+      if (user_mention.screen_name == config.screen_name && user_mention.indices[0] >= display_text_range) {
+        return true;
+      }
+    }
+  }
+  if (tweet.display_text_range) {
+    display_text_range = tweet.display_text_range[0];
+  }
+  for (var user_mention of tweet.entities.user_mentions) {
+    if (user_mention.screen_name == config.screen_name && user_mention.indices[0] >= display_text_range) {
+      return true;
+    }
+  }
+  return false;
+}
+
+async function onSchedule(in_reply_to) {
   console.log('start');
  
   var result = await getPrice();
@@ -86,7 +139,7 @@ async function onSchedule() {
   imageData.data.set(new Uint8ClampedArray(buffer));
   ctx.putImageData(imageData, 0, 0);
 
-  postStatus(sats, canvas.toBuffer());
+  postStatus(sats, canvas.toBuffer(), in_reply_to);
 }
 
 function dot(pixels, x, y, color) {
@@ -104,16 +157,14 @@ function getHeight(sats) {
   return Math.max(height, 285);
 }
 
-async function postStatus(sats, imageData) {
-  var twitter = new Twitter(config);
-  
+async function postStatus(sats, imageData, in_reply_to) {
   if (in_reply_to) {
     var reply = await getStatusesShow(twitter, in_reply_to);
     screen_name = reply.user.screen_name;
     var mentions = reply.text.match(/@[a-zA-Z0-9_]*/g);
     if (mentions != null) {
       for (var name of mentions) {
-        if (screen_name.indexOf(name) == -1) {
+        if (screen_name.indexOf(name) == -1 && name != config.screen_name) {
           screen_name = screen_name + ' ' + name;
         }
       }
