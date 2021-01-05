@@ -18,14 +18,36 @@ const COLUMNS = 16;
   } else {
     cron.schedule('0 */4 * * *', () => onSchedule());
     
-    var stream = twitter.stream('statuses/filter', {track: `@${config.screen_name}`});
-    stream.on('data', onTweet);
-    stream.on('error', error => console.log('Error: ' + error));
-    stream.on('end', response => console.log('Response: ' + response));
+    openStream();
   }
 })();
 
+var timeout = 0;
+
+function openStream() {
+  var stream = twitter.stream('statuses/filter', {track: `@${config.screen_name}`});
+  stream.on('data', onTweet);
+  stream.on('error', error => {
+    console.log('error: ' + JSON.stringify(error));
+    if (timeout < 320000) {
+      if (timeout < 5000) {
+        timeout = 5000;
+      } else {
+        timeout *= 2;
+      }
+    }
+  });
+  stream.on('end', response => {
+    console.log('end: ' + JSON.stringify(response)); 
+    if (timeout < 16000) {
+      timeout += 250;
+    }
+    setTimeout(openStream, timeout);
+  });
+}
+
 async function onTweet(tweet) {
+  timeout = 0;
   console.log(JSON.stringify(tweet));
   if (shouldReply(tweet)) {
     await onSchedule(tweet.id_str);
