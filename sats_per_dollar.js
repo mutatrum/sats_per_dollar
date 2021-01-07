@@ -8,8 +8,16 @@ const twitter = new Twitter(config);
 
 const URL = "https://api-pub.bitfinex.com/v2/ticker/tBTCUSD";
 const WIDTH = 506;
+const MIN_HEIGHT = Math.floor(WIDTH * 0.5625);
+const BORDER = 25;
+const RADIUS = 25;
+
+const COLUMNS = 10;
 const GRID = 10;
-const COLUMNS = 16;
+const DOT = 3;
+const DOT_GAP = 1;
+const GRID_GAP = 2;
+const BLOCK = (DOT * 10) + (DOT_GAP * 9) + GRID_GAP;
 
 (function () {
   console.log('init')
@@ -113,31 +121,87 @@ async function onSchedule(in_reply_to) {
   
   var sats = Math.floor(1e8 / price);
   console.log(`sats per dollar: ${sats}`)
-  
+
+  var buffer = createImage(sats);
+
+  postStatus(sats, buffer, in_reply_to);
+}
+
+function createImage(sats) {
   var r = Math.floor(Math.random() * 256);
   var g = Math.floor(Math.random() * 256);
   var b = Math.floor(Math.random() * 256);
   
-  var background = (255 << 24) + (b << 16) + (g << 8) + r;
+  var background = 0xFF000000 + (b << 16) + (g << 8) + r;
   var color = (r * 0.299 + g * 0.587 + b * 0.114) > 149 ? 0xFF000000 : 0xFFFFFFFF;
   
+  var width = getWidth();
   var height = getHeight(sats);
 
-  const canvas = createCanvas(WIDTH, height);
+  var HEIGHT = Math.max(height + (WIDTH - width), MIN_HEIGHT);
+
+  const canvas = createCanvas(WIDTH, HEIGHT);
   const ctx = canvas.getContext('2d');
   
-  const imageData = ctx.getImageData(0, 0, WIDTH, height);
+  const imageData = ctx.getImageData(0, 0, WIDTH, HEIGHT);
   
   var buffer = new ArrayBuffer(imageData.data.length);
   var pixels = new Uint32Array(buffer);
-  pixels.fill(background);
+
+  pixels.fill(0);
+
+  var ox = (WIDTH - width) >> 1;
+  var oy = (HEIGHT - height) >> 1;
+
+  drawBackground(pixels, background, width, height, ox, oy);
+
+  drawDots(pixels, color, ox, oy, sats);
+
+  imageData.data.set(new Uint8ClampedArray(buffer));
+  ctx.putImageData(imageData, 0, 0);
+  return canvas.toBuffer();
+}
+
+function getHeight(sats) {
+  var rows = Math.ceil(sats / (COLUMNS * 100));
+  return (rows * 10 * DOT) + (rows * 9 * DOT_GAP) + ((rows - 1) * GRID_GAP);
+}
+
+function getWidth() {
+  return (COLUMNS * 10 * DOT) + (COLUMNS * 9 * DOT_GAP) + ((COLUMNS - 1) * GRID_GAP);
+}
+
+function drawBackground(pixels, color, width, height, ox, oy) {
+  ox -= BORDER;
+  oy -= BORDER;
+  width += BORDER << 1;
+  height += BORDER << 1;
   
+  var circle = getCircle()
+
+  var x = ox + ((oy + RADIUS) * WIDTH);
+  for (var i = 0; i <= height - RADIUS - RADIUS; i++) {
+    pixels.fill(color, x, x + width);
+    x += WIDTH;
+  }
+  var x = ox + RADIUS + (oy * WIDTH);
+  var x2 = (height - RADIUS) * WIDTH;
+  for (var i = 0; i < RADIUS; i++) {
+    var c1 = circle[RADIUS - i];
+    pixels.fill(color, x - c1, x + width + c1 - RADIUS - RADIUS);
+    var c2 = circle[i];
+    pixels.fill(color, x + x2 - c2, x + x2 + width + c2 - RADIUS - RADIUS);
+    x += WIDTH;
+  }
+}
+
+function drawDots(pixels, color, ox ,oy, sats) {
   var ax = 0, ay = 0, bx = 0, by = 0;
   
   for (var i = 0; i < sats; i++) {
 
-    var x = 6 + (ax * 3) + (bx * 31);
-    var y = 6 + (ay * 3) + (by * 31);
+    var x = ox + (ax * (DOT + DOT_GAP)) + (bx * BLOCK);
+    var y = oy + (ay * (DOT + DOT_GAP)) + (by * BLOCK);
     
     dot(pixels, x, y, color);
     
@@ -157,26 +221,38 @@ async function onSchedule(in_reply_to) {
       bx = 0;
     }
   }
+}
 
-  imageData.data.set(new Uint8ClampedArray(buffer));
-  ctx.putImageData(imageData, 0, 0);
+function getCircle() {
+  var circle = new Array(RADIUS);
+  circle[0] = RADIUS;
 
-  postStatus(sats, canvas.toBuffer(), in_reply_to);
+  var x = 0;
+  var y = RADIUS;
+  var d = 3 - (2 * RADIUS);
+ 
+  while(x <= y) {
+    if(d <= 0) {
+      d = d + (4 * x) + 6;
+    } else {
+      d = d + (4 * x) - (4 * y) + 10;
+      y--;
+    }
+    x++;
+
+    circle[x] = y;
+    circle[y] = x;
+  }
+
+  return circle;
 }
 
 function dot(pixels, x, y, color) {
   var p = (y * WIDTH) + x;
-  
-  pixels[p            ] = color;
-  pixels[p         + 1] = color;
-  pixels[p + WIDTH    ] = color;
-  pixels[p + WIDTH + 1] = color;
-}
-
-function getHeight(sats) {
-  var rows = Math.floor(sats / (COLUMNS * GRID * GRID)) + 1;
-  var height = (rows * 31) + 10;
-  return Math.max(height, 285);
+  for (var i = 0; i < DOT; i++) {
+    pixels.fill(color, p, p + DOT);
+    p += WIDTH;
+  }
 }
 
 async function postStatus(sats, imageData, in_reply_to) {
