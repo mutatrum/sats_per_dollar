@@ -7,8 +7,7 @@ const Twitter = require('twitter');
 const twitter = new Twitter(config);
 
 const URL = "https://api-pub.bitfinex.com/v2/ticker/tBTCUSD";
-const WIDTH = 506;
-const MIN_HEIGHT = Math.floor(WIDTH * 0.5625);
+const PADDING = 5;
 const BORDER = 25;
 const RADIUS = 25;
 
@@ -124,7 +123,12 @@ async function onSchedule(in_reply_to) {
 
   var buffer = createImage(sats);
 
-  postStatus(sats, buffer, in_reply_to);
+  if (in_reply_to == 'test') {
+    const fs = require('fs');
+    fs.writeFileSync('image.png', buffer);
+  } else {
+    postStatus(sats, buffer, in_reply_to);
+  }
 }
 
 function createImage(sats) {
@@ -138,7 +142,8 @@ function createImage(sats) {
   var width = getWidth();
   var height = getHeight(sats);
 
-  var HEIGHT = Math.max(height + (WIDTH - width), MIN_HEIGHT);
+  var WIDTH = width + PADDING + PADDING + BORDER + BORDER;
+  var HEIGHT = Math.max(height + (WIDTH - width), Math.floor(WIDTH * 0.5625));
 
   const canvas = createCanvas(WIDTH, HEIGHT);
   const ctx = canvas.getContext('2d');
@@ -153,9 +158,9 @@ function createImage(sats) {
   var ox = (WIDTH - width) >> 1;
   var oy = (HEIGHT - height) >> 1;
 
-  drawBackground(pixels, background, width, height, ox, oy);
+  drawBackground(pixels, background, WIDTH, width, height, ox, oy);
 
-  drawDots(pixels, color, ox, oy, sats);
+  drawDots(pixels, color, WIDTH, ox, oy, sats);
 
   imageData.data.set(new Uint8ClampedArray(buffer));
   ctx.putImageData(imageData, 0, 0);
@@ -171,7 +176,7 @@ function getWidth() {
   return (COLUMNS * 10 * DOT) + (COLUMNS * 9 * DOT_GAP) + ((COLUMNS - 1) * GRID_GAP);
 }
 
-function drawBackground(pixels, color, width, height, ox, oy) {
+function drawBackground(pixels, color, WIDTH, width, height, ox, oy) {
   ox -= BORDER;
   oy -= BORDER;
   width += BORDER << 1;
@@ -195,7 +200,7 @@ function drawBackground(pixels, color, width, height, ox, oy) {
   }
 }
 
-function drawDots(pixels, color, ox ,oy, sats) {
+function drawDots(pixels, color, WIDTH, ox ,oy, sats) {
   var ax = 0, ay = 0, bx = 0, by = 0;
   
   for (var i = 0; i < sats; i++) {
@@ -203,7 +208,7 @@ function drawDots(pixels, color, ox ,oy, sats) {
     var x = ox + (ax * (DOT + DOT_GAP)) + (bx * BLOCK);
     var y = oy + (ay * (DOT + DOT_GAP)) + (by * BLOCK);
     
-    dot(pixels, x, y, color);
+    dot(pixels, WIDTH, x, y, color);
     
     ax++;
     if (ax == GRID) {
@@ -247,7 +252,7 @@ function getCircle() {
   return circle;
 }
 
-function dot(pixels, x, y, color) {
+function dot(pixels, WIDTH, x, y, color) {
   var p = (y * WIDTH) + x;
   for (var i = 0; i < DOT; i++) {
     pixels.fill(color, p, p + DOT);
