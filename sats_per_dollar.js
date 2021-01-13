@@ -6,7 +6,7 @@ const https = require("https");
 const Twitter = require('twitter');
 const twitter = new Twitter(config);
 
-const URL = "https://api-pub.bitfinex.com/v2/ticker/tBTCUSD";
+const URL = `https://api-pub.bitfinex.com/v2/ticker/tBTC${config.currency}`;
 const PADDING = 5;
 const BORDER = 25;
 const RADIUS = 25;
