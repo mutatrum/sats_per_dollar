@@ -23,7 +23,7 @@ const BLOCK = (DOT * 10) + (DOT_GAP * 9) + GRID_GAP;
   if (process.argv.length > 2) {
     onSchedule(process.argv[2]);
   } else {
-    cron.schedule('0 */4 * * *', () => onSchedule());
+    cron.schedule(config.schedule, () => onSchedule());
     
     openStream();
   }
