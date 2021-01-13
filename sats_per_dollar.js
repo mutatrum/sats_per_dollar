@@ -119,7 +119,7 @@ async function onSchedule(in_reply_to) {
   console.log(`price: ${price}`);
   
   var sats = Math.floor(1e8 / price);
-  console.log(`sats per dollar: ${sats}`)
+  console.log(`sats: ${sats}`)
 
   var buffer = createImage(sats);
 
