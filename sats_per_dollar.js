@@ -164,6 +164,13 @@ function createImage(sats) {
 
   imageData.data.set(new Uint8ClampedArray(buffer));
   ctx.putImageData(imageData, 0, 0);
+  ctx.fillStyle = `#${(color & 0xFFFFFF).toString(16)}`;
+  ctx.font = '6px DejaVu Sans Mono';
+  ctx.imageSmoothingEnabled= false
+  ctx.textAlign = 'left'
+  ctx.fillText('We are all holdonaut', ox, oy + height + BORDER - 5);
+  ctx.textAlign = 'right'
+  ctx.fillText('CSW is a fraud', ox + width, oy + height + BORDER - 5);
   return canvas.toBuffer();
 }
 
@@ -190,8 +197,8 @@ function drawBackground(pixels, color, WIDTH, width, height, ox, oy) {
     x += WIDTH;
   }
   var x = ox + RADIUS + (oy * WIDTH);
-  var x2 = (height - RADIUS) * WIDTH;
-  for (var i = 0; i < RADIUS; i++) {
+  var x2 = (height - RADIUS - 1) * WIDTH;
+  for (var i = 0; i <= RADIUS; i++) {
     var c1 = circle[RADIUS - i];
     pixels.fill(color, x - c1, x + width + c1 - RADIUS - RADIUS);
     var c2 = circle[i];
