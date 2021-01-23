@@ -168,7 +168,7 @@ function createImage(sats) {
   ctx.font = '6px DejaVu Sans Mono';
   ctx.imageSmoothingEnabled= false
   ctx.textAlign = 'left'
-  ctx.fillText('We are all holdonaut', ox, oy + height + BORDER - 5);
+  ctx.fillText('We are all hodlonaut', ox, oy + height + BORDER - 5);
   ctx.textAlign = 'right'
   ctx.fillText('CSW is a fraud', ox + width, oy + height + BORDER - 5);
   return canvas.toBuffer();
