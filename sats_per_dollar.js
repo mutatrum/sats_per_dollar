@@ -8,8 +8,8 @@ const twitter = new Twitter(config);
 
 const URL = `https://api-pub.bitfinex.com/v2/ticker/tBTC${config.currency}`;
 const PADDING = 5;
-const BORDER = 25;
-const RADIUS = 25;
+const BORDER = 12;
+const RADIUS = 11;
 
 const COLUMNS = 10;
 const GRID = 10;
@@ -17,6 +17,7 @@ const DOT = 3;
 const DOT_GAP = 1;
 const GRID_GAP = 2;
 const BLOCK = (DOT * 10) + (DOT_GAP * 9) + GRID_GAP;
+const FONT_SIZE = 7;
 
 (function () {
   console.log('init')
@@ -165,12 +166,16 @@ function createImage(sats) {
   imageData.data.set(new Uint8ClampedArray(buffer));
   ctx.putImageData(imageData, 0, 0);
   ctx.fillStyle = `#${(color & 0xFFFFFF).toString(16)}`;
-  ctx.font = '6px DejaVu Sans Mono';
-  ctx.imageSmoothingEnabled= false
-  ctx.textAlign = 'left'
-  ctx.fillText('We are all hodlonaut', ox, oy + height + BORDER - 5);
-  ctx.textAlign = 'right'
-  ctx.fillText('CSW is a fraud', ox + width, oy + height + BORDER - 5);
+  ctx.font = `${FONT_SIZE}px DejaVu Sans Mono`;
+  ctx.imageSmoothingEnabled = false;
+  if (config.text_left) {
+    ctx.textAlign = 'left'
+    ctx.fillText(config.text_left, ox, oy + height + ((BORDER + FONT_SIZE) >> 1));
+  }
+  if (config.text_right) {
+    ctx.textAlign = 'right'
+    ctx.fillText(config.text_right, ox + width, oy + height + ((BORDER + FONT_SIZE) >> 1));
+  }
   return canvas.toBuffer();
 }
 

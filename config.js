@@ -5,5 +5,7 @@ module.exports = {
   consumer_key: '',
   consumer_secret: '',
   access_token_key: '',
-  access_token_secret: ''
+  access_token_secret: '',
+  text_left: 'We are all hodlonaut',
+  text_right: 'CSW is a fraud'
 }
