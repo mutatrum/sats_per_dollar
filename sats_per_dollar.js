@@ -1,5 +1,5 @@
 require('log-timestamp');
-const config = require('./config-template-aud.js');
+const config = require('./config.js');
 const cron = require('node-cron');
 const { createCanvas } = require('canvas');
 const https = require("https");
