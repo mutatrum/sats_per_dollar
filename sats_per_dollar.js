@@ -1,12 +1,11 @@
 require('log-timestamp');
-const config = require('./config.js');
+const config = require('./config-template-aud.js');
 const cron = require('node-cron');
 const { createCanvas } = require('canvas');
 const https = require("https");
 const Twitter = require('twitter');
 const twitter = new Twitter(config);
 
-const URL = `https://api-pub.bitfinex.com/v2/ticker/tBTC${config.currency}`;
 const PADDING = 10;
 const BORDER = 24;
 const RADIUS = 22;
@@ -116,7 +115,7 @@ async function onSchedule(in_reply_to) {
     return;
   }
   
-  var price = result[6];
+  var price = eval(config.eval);
   console.log(`price: ${price}`);
   
   var sats = Math.floor(1e8 / price);
@@ -347,7 +346,7 @@ function postStatusesUpdate(twitter, status) {
 
 function getPrice() {
   return new Promise(function(resolve, reject) {
-    https.get(URL, { headers : { "accept" : "application/json" }}, res => {
+    https.get(config.uri, { headers : { "accept" : "application/json" }}, res => {
       let body = "";
       res.on("data", data => {
         body += data;
