@@ -7,17 +7,17 @@ const Twitter = require('twitter');
 const twitter = new Twitter(config);
 
 const URL = `https://api-pub.bitfinex.com/v2/ticker/tBTC${config.currency}`;
-const PADDING = 5;
-const BORDER = 12;
-const RADIUS = 11;
+const PADDING = 10;
+const BORDER = 24;
+const RADIUS = 22;
 
 const COLUMNS = 10;
 const GRID = 10;
-const DOT = 3;
-const DOT_GAP = 1;
-const GRID_GAP = 2;
+const DOT = 6;
+const DOT_GAP = 2;
+const GRID_GAP = 4;
 const BLOCK = (DOT * 10) + (DOT_GAP * 9) + GRID_GAP;
-const FONT_SIZE = 7;
+const FONT_SIZE = 14;
 
 (function () {
   console.log('init')
