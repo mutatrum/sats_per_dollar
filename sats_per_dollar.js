@@ -126,7 +126,7 @@ async function onSchedule(in_reply_to) {
     const fs = require('fs');
     fs.writeFileSync('image.png', buffer);
   } else {
-    postStatus(sats, buffer, in_reply_to).catch(exception => console.log(`ERROR ${exception}`));
+    postStatus(sats, buffer, in_reply_to).catch(exception => console.log(`ERROR ${JSON.stringify(exception)}`));
   }
 }
 
