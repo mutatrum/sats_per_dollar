@@ -15,7 +15,7 @@ const GRID = 10;
 const DOT = 6;
 const DOT_GAP = 2;
 const GRID_GAP = 4;
-const BLOCK = (DOT * 10) + (DOT_GAP * 9) + GRID_GAP;
+const BLOCK = (DOT * COLUMNS) + (DOT_GAP * (COLUMNS - 1)) + GRID_GAP;
 const FONT_SIZE = 14;
 
 (function () {
@@ -34,6 +34,7 @@ var timeout = 0;
 function openStream() {
   var stream = twitter.stream('statuses/filter', {track: `@${config.screen_name}`});
   stream.on('data', onTweet);
+  stream.on('response', response => console.log(JSON.stringify(response)));
   stream.on('error', error => {
     console.log('error: ' + JSON.stringify(error));
     if (timeout < 320000) {
@@ -142,7 +143,10 @@ function createImage(sats) {
   var height = getHeight(sats);
 
   var WIDTH = width + PADDING + PADDING + BORDER + BORDER;
-  var HEIGHT = Math.max(height + (WIDTH - width), Math.floor(WIDTH * 0.5625));
+  var HEIGHT = Math.max(height + (WIDTH - width), Math.ceil(WIDTH * 0.5625));
+  if (HEIGHT % 2 == 1) {
+    HEIGHT++;
+  }
 
   const canvas = createCanvas(WIDTH, HEIGHT);
   const ctx = canvas.getContext('2d');
