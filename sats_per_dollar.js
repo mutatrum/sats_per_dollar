@@ -34,7 +34,7 @@ var timeout = 0;
 function openStream() {
   var stream = twitter.stream('statuses/filter', {track: `@${config.screen_name}`});
   stream.on('data', onTweet);
-  stream.on('response', response => console.log(JSON.stringify(response)));
+  stream.on('response', response => console.log(`stream response: ${response.statusCode}`));
   stream.on('error', error => {
     console.log('error: ' + JSON.stringify(error));
     if (timeout < 320000) {
@@ -46,7 +46,7 @@ function openStream() {
     }
   });
   stream.on('end', response => {
-    console.log('end: ' + JSON.stringify(response)); 
+    console.log(`stream end: ${response.statusCode}`); 
     if (timeout < 16000) {
       timeout += 250;
     }
