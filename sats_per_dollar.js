@@ -46,10 +46,10 @@ function openStream() {
     }
   });
   stream.on('end', response => {
-    console.log(`stream end: ${response.statusCode}`); 
     if (timeout < 16000) {
       timeout += 250;
     }
+    console.log(`stream end: ${response.statusCode}, reconnect in ${timeout / 1000}`);
     setTimeout(openStream, timeout);
   });
 }
