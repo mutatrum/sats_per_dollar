@@ -170,13 +170,25 @@ function createImage(sats) {
   ctx.fillStyle = `#${(color & 0xFFFFFF).toString(16)}`;
   ctx.font = `${FONT_SIZE}px DejaVu Sans Mono`;
   ctx.imageSmoothingEnabled = false;
-  if (config.text_left) {
+  if (config.text_top_left) {
     ctx.textAlign = 'left'
-    ctx.fillText(config.text_left, ox, oy + height + ((BORDER + FONT_SIZE) >> 1));
+    ctx.textBaseline = 'middle'
+    ctx.fillText(config.text_top_left, ox, oy - (BORDER >> 1));
   }
-  if (config.text_right) {
+  if (config.text_top_right) {
     ctx.textAlign = 'right'
-    ctx.fillText(config.text_right, ox + width, oy + height + ((BORDER + FONT_SIZE) >> 1));
+    ctx.textBaseline = 'middle'
+    ctx.fillText(config.text_top_right, ox + width, oy - (BORDER >> 1));
+  }
+  if (config.text_bottom_left) {
+    ctx.textAlign = 'left'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(config.text_bottom_left, ox, oy + height + (BORDER >> 1));
+  }
+  if (config.text_bottom_right) {
+    ctx.textAlign = 'right'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(config.text_bottom_right, ox + width, oy + height + (BORDER >> 1));
   }
   return canvas.toBuffer();
 }
