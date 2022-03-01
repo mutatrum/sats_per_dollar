@@ -118,10 +118,10 @@ async function onSchedule(in_reply_to) {
   var price = eval(config.eval);
   console.log(`price: ${price}`);
   
-  var sats = Math.floor(1e8 / price);
+  var sats = getSats(price);
   console.log(`sats: ${sats}`)
 
-  var buffer = createImage(sats);
+  var buffer = createImage(Math.floor(sats));
 
   if (in_reply_to == 'test') {
     const fs = require('fs');
@@ -129,6 +129,20 @@ async function onSchedule(in_reply_to) {
   } else {
     postStatus(sats, buffer, in_reply_to).catch(exception => console.log(`ERROR ${JSON.stringify(exception)}`));
   }
+}
+
+function getSats(price) {
+  var sats = 1e8 / price;
+  if (sats < 1) {
+    return sats.toFixed(3)
+  }
+  if (sats < 10) {
+    return sats.toFixed(2)
+  }
+  if (sats < 100) {
+    return sats.toFixed(1)
+  }
+  return Math.floor(sats)
 }
 
 function createImage(sats) {
