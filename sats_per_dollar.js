@@ -1,5 +1,6 @@
 require('log-timestamp');
 const config = require('./config.js');
+const lab = require('./lab.js');
 const cron = require('node-cron');
 const { createCanvas } = require('canvas');
 const https = require("https");
@@ -10,12 +11,33 @@ const PADDING = 10;
 const BORDER = 24;
 const RADIUS = 22;
 
-const COLUMNS = 10;
-const GRID = 10;
-const DOT = 6;
-const DOT_GAP = 2;
-const GRID_GAP = 4;
-const BLOCK = (DOT * COLUMNS) + (DOT_GAP * (COLUMNS - 1)) + GRID_GAP;
+const LARGE_GRID = {
+  columns: 10,
+  grid: 10,
+  dot: 6,
+  dot_gap: 2,
+  grid_gap: 4,
+  getHeight: function (sats) {
+    var rows = Math.ceil(sats / (this.columns * 100));
+    return (rows * 10 * this.dot) + (rows * 9 * this.dot_gap) + ((rows - 1) * this.grid_gap)
+  }
+}
+
+const MEDIUM_GRID = {
+  columns: 1,
+  grid: 10,
+  dot: 76,
+  dot_gap: 6,
+  grid_gap: 4,
+  getHeight: function (sats) {
+    var rows = Math.ceil(sats / this.grid);
+    return (rows * this.dot) + ((rows - 1) * this.dot_gap)
+  }
+}
+
+var settings = LARGE_GRID;
+// var settings = MEDIUM_GRID;
+
 const FONT_SIZE = 14;
 
 (function () {
@@ -115,7 +137,7 @@ async function onSchedule(in_reply_to) {
     return;
   }
   
-  var price = eval(config.eval);
+  var price = Function('result', "return " + config.eval)(result);
   console.log(`price: ${price}`);
   
   var sats = getSats(price);
@@ -146,15 +168,13 @@ function getSats(price) {
 }
 
 function createImage(sats) {
-  var r = Math.floor(Math.random() * 256);
-  var g = Math.floor(Math.random() * 256);
-  var b = Math.floor(Math.random() * 256);
+  var [r, g, b] = lab.getRandomColor();
   
   var background = 0xFF000000 + (b << 16) + (g << 8) + r;
   var color = (r * 0.299 + g * 0.587 + b * 0.114) > 149 ? 0xFF000000 : 0xFFFFFFFF;
   
   var width = getWidth();
-  var height = getHeight(sats);
+  var height = settings.getHeight(sats);
 
   var WIDTH = width + PADDING + PADDING + BORDER + BORDER;
   var HEIGHT = Math.max(height + (WIDTH - width), Math.ceil(WIDTH * 0.5625));
@@ -187,7 +207,8 @@ function createImage(sats) {
   if (config.text_top_left) {
     ctx.textAlign = 'left'
     ctx.textBaseline = 'middle'
-    ctx.fillText(config.text_top_left, ox, oy - (BORDER >> 1));
+    var text = sats + config.text_top_left
+    ctx.fillText(text, ox, oy - (BORDER >> 1));
   }
   if (config.text_top_right) {
     ctx.textAlign = 'right'
@@ -207,13 +228,8 @@ function createImage(sats) {
   return canvas.toBuffer();
 }
 
-function getHeight(sats) {
-  var rows = Math.ceil(sats / (COLUMNS * 100));
-  return (rows * 10 * DOT) + (rows * 9 * DOT_GAP) + ((rows - 1) * GRID_GAP);
-}
-
 function getWidth() {
-  return (COLUMNS * 10 * DOT) + (COLUMNS * 9 * DOT_GAP) + ((COLUMNS - 1) * GRID_GAP);
+  return (settings.columns * 10 * settings.dot) + (settings.columns * 9 * settings.dot_gap) + ((settings.columns - 1) * settings.grid_gap);
 }
 
 function drawBackground(pixels, color, WIDTH, width, height, ox, oy) {
@@ -241,27 +257,29 @@ function drawBackground(pixels, color, WIDTH, width, height, ox, oy) {
 }
 
 function drawDots(pixels, color, WIDTH, ox ,oy, sats) {
+  var block = (settings.dot * settings.columns) + (settings.dot_gap * (settings.columns - 1)) + settings.grid_gap
+
   var ax = 0, ay = 0, bx = 0, by = 0;
   
   for (var i = 0; i < sats; i++) {
 
-    var x = ox + (ax * (DOT + DOT_GAP)) + (bx * BLOCK);
-    var y = oy + (ay * (DOT + DOT_GAP)) + (by * BLOCK);
+    var x = ox + (ax * (settings.dot + settings.dot_gap)) + (bx * block);
+    var y = oy + (ay * (settings.dot + settings.dot_gap)) + (by * block);
     
     dot(pixels, WIDTH, x, y, color);
     
     ax++;
-    if (ax == GRID) {
+    if (ax == settings.grid) {
       ax = 0;
       ay++;
     }
     
-    if (ay == GRID) {
+    if (ay == settings.grid) {
       bx++;
       ay = 0;
     }
     
-    if (bx == COLUMNS) {
+    if (bx == settings.columns) {
       by++;
       bx = 0;
     }
@@ -294,8 +312,8 @@ function getCircle() {
 
 function dot(pixels, WIDTH, x, y, color) {
   var p = (y * WIDTH) + x;
-  for (var i = 0; i < DOT; i++) {
-    pixels.fill(color, p, p + DOT);
+  for (var i = 0; i < settings.dot; i++) {
+    pixels.fill(color, p, p + settings.dot);
     p += WIDTH;
   }
 }
