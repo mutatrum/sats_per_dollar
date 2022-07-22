@@ -143,7 +143,7 @@ async function onSchedule(in_reply_to) {
   var sats = getSats(price);
   console.log(`sats: ${sats}`)
 
-  var buffer = createImage(Math.floor(sats));
+  var buffer = createImage(sats);
 
   if (in_reply_to == 'test') {
     const fs = require('fs');
@@ -174,7 +174,7 @@ function createImage(sats) {
   var color = (r * 0.299 + g * 0.587 + b * 0.114) > 149 ? 0xFF000000 : 0xFFFFFFFF;
   
   var width = getWidth();
-  var height = settings.getHeight(sats);
+  var height = settings.getHeight(Math.floor(sats));
 
   var WIDTH = width + PADDING + PADDING + BORDER + BORDER;
   var HEIGHT = Math.max(height + (WIDTH - width), Math.ceil(WIDTH * 0.5625));
@@ -261,7 +261,7 @@ function drawDots(pixels, color, WIDTH, ox ,oy, sats) {
 
   var ax = 0, ay = 0, bx = 0, by = 0;
   
-  for (var i = 0; i < sats; i++) {
+  for (var i = 0; i < Math.floor(sats); i++) {
 
     var x = ox + (ax * (settings.dot + settings.dot_gap)) + (bx * block);
     var y = oy + (ay * (settings.dot + settings.dot_gap)) + (by * block);
